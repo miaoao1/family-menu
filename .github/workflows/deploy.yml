@@ -1,0 +1,26 @@
+name: Deploy to Tencent Cloud COS
+
+on:
+  push:
+    branches:
+      - main  # 当main分支有推送时触发
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. 拉取代码
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. 同步到腾讯云COS
+      - name: Deploy to COS
+        uses: tencentyun/cos-action@v1
+        with:
+          secret_id: ${{ secrets.TENCENT_SECRET_ID }}
+          secret_key: ${{ secrets.TENCENT_SECRET_KEY }}
+          cos_bucket: ${{ secrets.COS_BUCKET }}
+          cos_region: ${{ secrets.COS_REGION }}
+          local_path: ./   # 上传当前目录下所有文件
+          remote_path: /   # 上传到COS根目录
+          exclude: ".git/*,.github/*"  # 排除无关文件
