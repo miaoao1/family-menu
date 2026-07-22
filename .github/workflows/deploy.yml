@@ -16,11 +16,7 @@ jobs:
         run: pip install coscmd
 
       - name: Configure coscmd
-        run: |
-          coscmd config -a ${{ secrets.TENCENT_SECRET_ID }} \
-                         -s ${{ secrets.TENCENT_SECRET_KEY }} \
-                         -b ${{ secrets.COS_BUCKET }} \
-                         -r ${{ secrets.COS_REGION }}
+        run: coscmd config -a ${{ secrets.TENCENT_SECRET_ID }} -s ${{ secrets.TENCENT_SECRET_KEY }} -b ${{ secrets.COS_BUCKET }} -r ${{ secrets.COS_REGION }}
 
       - name: Upload files to COS
         run: coscmd upload -r ./ / -y
