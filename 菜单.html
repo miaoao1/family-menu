@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+    <title>🍽️ 畅畅的小食堂</title>
+    <style>
+        /* ===== 全局重置 & 基础 ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(145deg, #fff5f7 0%, #ffe8ed 100%);
+            min-height: 100vh;
+            padding: 0 0 90px 0;
+            color: #4a2d3a;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* ===== 滚动条美化 ===== */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #ffe8ed;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #ffb3c6;
+            border-radius: 8px;
+        }
+
+        /* ===== 顶部标题 ===== */
+        .header {
+            padding: 28px 20px 16px 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header .deco {
+            font-size: 28px;
+            display: inline-block;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ff6b8a, #e8436e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 2px;
+            margin-top: 2px;
+        }
+
+        .header p {
+            font-size: 14px;
+            color: #b07a8a;
+            margin-top: 4px;
+            letter-spacing: 4px;
+            font-weight: 300;
+        }
+
+        .header .sparkles {
+            font-size: 18px;
+            letter-spacing: 6px;
+            opacity: 0.6;
+            margin-top: 6px;
+        }
+
+        @keyframes float {
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-6px);
+            }
+        }
+
+        /* ===== 分类标签 ===== */
+        .categories {
+            display: flex;
+            gap: 10px;
+            padding: 6px 20px 16px 20px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
+            flex-wrap: nowrap;
+            justify-content: center;
+        }
+        .categories::-webkit-scrollbar {
+            display: none;
+        }
+
+        .cat-btn {
+            flex-shrink: 0;
+            padding: 6px 18px;
+            border-radius: 30px;
+            border: 2px solid #ffb3c6;
+            background: rgba(255, 255, 255, 0.6);
+            font-size: 13px;
+            font-weight: 600;
+            color: #b07a8a;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            backdrop-filter: blur(4px);
+            letter-spacing: 0.5px;
+        }
+
+        .cat-btn.active {
+            background: #ff6b8a;
+            border-color: #ff6b8a;
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(255, 107, 138, 0.35);
+        }
+
+        .cat-btn:active {
+            transform: scale(0.94);
+        }
+
+        /* ===== 菜品网格 ===== */
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            padding: 4px 16px 20px 16px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* ===== 菜品卡片 ===== */
+        .dish-card {
+            background: #ffffff;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 6px 24px rgba(180, 100, 120, 0.12),
+                0 2px 6px rgba(180, 100, 120, 0.06);
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            cursor: pointer;
+            position: relative;
+            border: 3px solid transparent;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .dish-card:active {
+            transform: scale(0.96);
+        }
+
+        .dish-card.selected {
+            border-color: #ff6b8a;
+            box-shadow: 0 8px 30px rgba(255, 107, 138, 0.25),
+                0 0 0 4px rgba(255, 107, 138, 0.08);
+        }
+
+        .dish-card .img-wrap {
+            position: relative;
+            width: 100%;
+            padding-bottom: 75%;
+            background: #fce8ec;
+            overflow: hidden;
+        }
+
+        .dish-card .img-wrap img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s ease;
+        }
+
+        .dish-card:hover .img-wrap img {
+            transform: scale(1.03);
+        }
+
+        /* 选中标记 */
+        .dish-card .check-mark {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #ff6b8a;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 700;
+            opacity: 0;
+            transform: scale(0.5);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 4px 12px rgba(255, 107, 138, 0.4);
+            pointer-events: none;
+        }
+
+        .dish-card.selected .check-mark {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* 分类小标签 */
+        .dish-card .cat-tag {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(6px);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 500;
+            padding: 2px 12px;
+            border-radius: 20px;
+            letter-spacing: 0.5px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        /* 卡片底部信息 */
+        .dish-info {
+            padding: 12px 14px 14px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .dish-info .name {
+            font-size: 16px;
+            font-weight: 650;
+            color: #3d2632;
+            letter-spacing: 0.5px;
+            line-height: 1.3;
+        }
+
+        .dish-info .emoji-deco {
+            font-size: 18px;
+            opacity: 0.5;
+            transition: opacity 0.3s;
+        }
+
+        .dish-card.selected .dish-info .emoji-deco {
+            opacity: 1;
+        }
+
+        /* ===== 空状态 ===== */
+        .empty-tip {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 48px 20px;
+            color: #b07a8a;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 32px;
+            backdrop-filter: blur(4px);
+        }
+        .empty-tip span {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 12px;
+        }
+
+        /* ===== 底部操作栏 ===== */
+        .bottom-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px) saturate(1.4);
+            border-top: 2px solid rgba(255, 107, 138, 0.15);
+            padding: 12px 20px 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 100;
+            box-shadow: 0 -6px 30px rgba(180, 100, 120, 0.08);
+            transition: transform 0.3s ease;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .bottom-bar .left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .bottom-bar .badge {
+            background: #ff6b8a;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 2px 14px;
+            border-radius: 30px;
+            line-height: 28px;
+            min-width: 36px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(255, 107, 138, 0.3);
+            transition: all 0.3s;
+        }
+
+        .bottom-bar .badge.empty {
+            background: #e0cdd3;
+            box-shadow: none;
+        }
+
+        .bottom-bar .selected-names {
+            font-size: 14px;
+            color: #4a2d3a;
+            flex: 1;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            min-width: 60px;
+            font-weight: 500;
+        }
+
+        .bottom-bar .selected-names .placeholder {
+            color: #b07a8a;
+            font-weight: 400;
+        }
+
+        .bottom-bar .actions {
+            display: flex;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .btn {
+            padding: 8px 20px;
+            border-radius: 30px;
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            letter-spacing: 0.5px;
+        }
+
+        .btn:active {
+            transform: scale(0.94);
+        }
+
+        .btn-clear {
+            background: #f0e4e8;
+            color: #7a5a6a;
+        }
+        .btn-clear:hover {
+            background: #e6d4da;
+        }
+
+        .btn-confirm {
+            background: linear-gradient(135deg, #ff6b8a, #e8436e);
+            color: #fff;
+            box-shadow: 0 4px 16px rgba(255, 107, 138, 0.35);
+        }
+        .btn-confirm:hover {
+            box-shadow: 0 6px 24px rgba(255, 107, 138, 0.45);
+            transform: translateY(-2px);
+        }
+
+        .btn-confirm:active {
+            transform: scale(0.94) translateY(0);
+        }
+
+        /* ===== 模态框 ===== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(30, 10, 20, 0.5);
+            backdrop-filter: blur(8px);
+            z-index: 200;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.96);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 32px;
+            max-width: 420px;
+            width: 100%;
+            max-height: 80vh;
+            padding: 28px 24px 24px 24px;
+            box-shadow: 0 30px 60px rgba(60, 20, 40, 0.25);
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #3d2632;
+            text-align: center;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .modal .modal-title span {
+            font-size: 24px;
+        }
+
+        .modal .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 18px;
+            font-size: 24px;
+            background: none;
+            border: none;
+            color: #b07a8a;
+            cursor: pointer;
+            transition: transform 0.2s;
+            padding: 4px;
+        }
+        .modal .modal-close:active {
+            transform: scale(0.85);
+        }
+
+        .modal .selected-list {
+            list-style: none;
+            padding: 0;
+            margin: 8px 0 18px 0;
+        }
+
+        .modal .selected-list li {
+            padding: 10px 14px;
+            border-bottom: 1px solid #f5e8ec;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 16px;
+            font-weight: 500;
+            color: #3d2632;
+        }
+
+        .modal .selected-list li:last-child {
+            border-bottom: none;
+        }
+
+        .modal .selected-list li .idx {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #ffe8ed;
+            color: #ff6b8a;
+            text-align: center;
+            line-height: 24px;
+            font-size: 12px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .modal .selected-list .empty-msg {
+            text-align: center;
+            color: #b07a8a;
+            padding: 24px 0;
+            font-size: 15px;
+        }
+
+        .modal .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 8px;
+        }
+
+        .modal .modal-actions .btn {
+            flex: 1;
+            justify-content: center;
+            padding: 10px 0;
+        }
+
+        /* ===== 响应式 ===== */
+        @media (min-width: 600px) {
+            .menu-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 20px;
+                padding: 4px 24px 20px 24px;
+            }
+            .header h1 {
+                font-size: 34px;
+            }
+            .dish-info .name {
+                font-size: 18px;
+            }
+            .bottom-bar {
+                padding: 14px 30px 18px 30px;
+            }
+        }
+
+        @media (min-width: 900px) {
+            .menu-grid {
+                grid-template-columns: repeat(4, 1fr);
+                max-width: 1000px;
+            }
+            .header {
+                padding-top: 40px;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .menu-grid {
+                gap: 12px;
+                padding: 4px 12px 16px 12px;
+            }
+            .dish-info {
+                padding: 10px 10px 12px 10px;
+            }
+            .dish-info .name {
+                font-size: 14px;
+            }
+            .bottom-bar {
+                padding: 10px 14px 14px 14px;
+            }
+            .btn {
+                font-size: 12px;
+                padding: 6px 14px;
+            }
+            .bottom-bar .selected-names {
+                font-size: 12px;
+                max-width: 80px;
+            }
+            .header h1 {
+                font-size: 24px;
+            }
+        }
+
+        /* ===== 小工具类 ===== */
+        .hidden {
+            display: none !important;
+        }
+        .text-ellipsis {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* ===== Toast 提示 ===== */
+        .toast {
+            position: fixed;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: rgba(60, 30, 45, 0.85);
+            backdrop-filter: blur(12px);
+            color: #fff;
+            padding: 10px 28px;
+            border-radius: 40px;
+            font-size: 15px;
+            font-weight: 500;
+            z-index: 300;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            pointer-events: none;
+            white-space: nowrap;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== 顶部标题 ===== -->
+    <header class="header">
+        <div class="deco">👩‍🍳</div>
+        <h1>畅畅的小食堂</h1>
+        <p>✨ 今日菜单 · 用心烹饪 ✨</p>
+        <div class="sparkles">🌸  🥢  🍚  🥄  🌸</div>
+    </header>
+
+    <!-- ===== 分类筛选 ===== -->
+    <div class="categories" id="categoryFilter">
+        <button class="cat-btn active" data-cat="all">🍽️ 全部</button>
+        <!-- 分类按钮由 JS 动态生成 -->
+    </div>
+
+    <!-- ===== 菜品网格 ===== -->
+    <div class="menu-grid" id="menuGrid">
+        <!-- 由 JS 动态渲染 -->
+    </div>
+
+    <!-- ===== 底部操作栏 ===== -->
+    <div class="bottom-bar" id="bottomBar">
+        <div class="left">
+            <span class="badge empty" id="countBadge">0</span>
+            <div class="selected-names" id="selectedNames">
+                <span class="placeholder">还没有选菜呢 ~</span>
+            </div>
+        </div>
+        <div class="actions">
+            <button class="btn btn-clear" id="clearBtn">🗑️ 清空</button>
+            <button class="btn btn-confirm" id="confirmBtn">✅ 确认点菜</button>
+        </div>
+    </div>
+
+    <!-- ===== 模态框（已选清单） ===== -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <button class="modal-close" id="modalClose">✕</button>
+            <div class="modal-title">
+                <span>🧾</span> 已选菜品
+            </div>
+            <ul class="selected-list" id="selectedList">
+                <!-- 由 JS 动态渲染 -->
+            </ul>
+            <div class="modal-actions">
+                <button class="btn btn-clear" id="modalClearBtn">🗑️ 清空</button>
+                <button class="btn btn-confirm" id="modalConfirmBtn">✅ 确认</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== Toast ===== -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ================================================================
+        //  1. 菜品数据 ———— 在这里修改、增删你的菜品！
+        //     图片可以用网络链接，也可以放本地路径（如 images/红烧肉.jpg）
+        // ================================================================
+        const DISHES = [{
+            id: 1,
+            name: '红烧肉',
+            category: '热菜',
+            image: 'https://picsum.photos/seed/redmeat/400/300',
+            emoji: '🥩'
+        }, {
+            id: 2,
+            name: '清蒸鲈鱼',
+            category: '热菜',
+            image: 'https://picsum.photos/seed/fish/400/300',
+            emoji: '🐟'
+        }, {
+            id: 3,
+            name: '糖醋排骨',
+            category: '热菜',
+            image: 'https://picsum.photos/seed/ribs/400/300',
+            emoji: '🍖'
+        }, {
+            id: 4,
+            name: '宫保鸡丁',
+            category: '热菜',
+            image: 'https://picsum.photos/seed/chicken/400/300',
+            emoji: '🐔'
+        }, {
+            id: 5,
+            name: '蒜蓉西兰花',
+            category: '素菜',
+            image: 'https://picsum.photos/seed/broccoli/400/300',
+            emoji: '🥦'
+        }, {
+            id: 6,
+            name: '凉拌黄瓜',
+            category: '凉菜',
+            image: 'https://picsum.photos/seed/cucumber/400/300',
+            emoji: '🥒'
+        }, {
+            id: 7,
+            name: '皮蛋豆腐',
+            category: '凉菜',
+            image: 'https://picsum.photos/seed/tofu/400/300',
+            emoji: '🥚'
+        }, {
+            id: 8,
+            name: '番茄蛋汤',
+            category: '汤品',
+            image: 'https://picsum.photos/seed/tomatosoup/400/300',
+            emoji: '🍅'
+        }, {
+            id: 9,
+            name: '紫菜蛋花汤',
+            category: '汤品',
+            image: 'https://picsum.photos/seed/seaweed/400/300',
+            emoji: '🌊'
+        }, {
+            id: 10,
+            name: '干煸四季豆',
+            category: '素菜',
+            image: 'https://picsum.photos/seed/beans/400/300',
+            emoji: '🌱'
+        }, {
+            id: 11,
+            name: '可乐鸡翅',
+            category: '热菜',
+            image: 'https://picsum.photos/seed/wings/400/300',
+            emoji: '🍗'
+        }, {
+            id: 12,
+            name: '水果拼盘',
+            category: '甜品',
+            image: 'https://picsum.photos/seed/fruit/400/300',
+            emoji: '🍉'
+        },// ... 前面的菜品保持不变 ...
+
+{
+    id: 13,
+    name: '白米饭',
+    category: '主食',
+    image: 'https://picsum.photos/seed/rice/400/300',
+    emoji: '🍚'
+}, {
+    id: 14,
+    name: '发面饼',
+    category: '主食',
+    image: 'https://i.ibb.co/XZCjJYzT/image.jpg" alt="image',
+    emoji: '🍜'
+}, {
+    id: 15,
+    name: '手工馒头',
+    category: '主食',
+    image: 'https://picsum.photos/seed/steamedbun/400/300',
+    emoji: '🥟'
+}, {
+    id: 16,
+    name: '煎饺',
+    category: '主食',
+    image: 'https://picsum.photos/seed/dumpling/400/300',
+    emoji: '🥟'
+}];
+
+        // ================================================================
+        //  2. 状态管理
+        // ================================================================
+        let selectedIds = new Set(); // 当前选中的菜品 id
+        let currentCategory = 'all'; // 当前筛选分类
+
+        // DOM 引用
+        const grid = document.getElementById('menuGrid');
+        const categoryFilter = document.getElementById('categoryFilter');
+        const countBadge = document.getElementById('countBadge');
+        const selectedNamesEl = document.getElementById('selectedNames');
+        const clearBtn = document.getElementById('clearBtn');
+        const confirmBtn = document.getElementById('confirmBtn');
+        const modalOverlay = document.getElementById('modalOverlay');
+        const modalClose = document.getElementById('modalClose');
+        const selectedList = document.getElementById('selectedList');
+        const modalClearBtn = document.getElementById('modalClearBtn');
+        const modalConfirmBtn = document.getElementById('modalConfirmBtn');
+        const toast = document.getElementById('toast');
+
+        let toastTimer = null;
+
+        // ================================================================
+        //  3. 工具函数
+        // ================================================================
+        function getCategoryCounts() {
+            const map = new Map();
+            DISHES.forEach(d => {
+                map.set(d.category, (map.get(d.category) || 0) + 1);
+            });
+            return map;
+        }
+
+        function getFilteredDishes() {
+            if (currentCategory === 'all') return DISHES;
+            return DISHES.filter(d => d.category === currentCategory);
+        }
+
+        function getSelectedDishes() {
+            return DISHES.filter(d => selectedIds.has(d.id));
+        }
+
+        function getSelectedNames() {
+            return getSelectedDishes().map(d => d.name);
+        }
+
+        function showToast(msg) {
+            toast.textContent = msg;
+            toast.classList.add('show');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+
+        // ================================================================
+        //  4. 渲染函数
+        // ================================================================
+
+        // 4.1 渲染分类按钮
+        function renderCategories() {
+            const counts = getCategoryCounts();
+            let html = `<button class="cat-btn active" data-cat="all">🍽️ 全部</button>`;
+            for (const [cat, count] of counts) {
+                const isActive = currentCategory === cat;
+                html += `<button class="cat-btn ${isActive ? 'active' : ''}" data-cat="${cat}">${cat} ${count}</button>`;
+            }
+            categoryFilter.innerHTML = html;
+
+            // 绑定点击事件
+            categoryFilter.querySelectorAll('.cat-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const cat = this.dataset.cat;
+                    currentCategory = cat;
+                    // 更新 active 样式
+                    categoryFilter.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    renderDishes();
+                    updateBottomBar();
+                });
+            });
+        }
+
+        // 4.2 渲染菜品卡片
+        function renderDishes() {
+            const dishes = getFilteredDishes();
+            if (dishes.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-tip">
+                        <span>🍃</span>
+                        这个分类还没有菜呢 ~<br />
+                        快去厨房做一道吧！
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            dishes.forEach(dish => {
+                const isSelected = selectedIds.has(dish.id);
+                html += `
+                    <div class="dish-card ${isSelected ? 'selected' : ''}" data-id="${dish.id}">
+                        <div class="img-wrap">
+                            <img src="${dish.image}" alt="${dish.name}" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22%3E%3Crect width=%22400%22 height=%22300%22 fill=%22%23fce8ec%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 font-size=%2236%22 font-family=%22sans-serif%22 fill=%22%23b07a8a%22%3E🍽️%3C/text%3E%3C/svg%3E'" />
+                            <div class="check-mark">✓</div>
+                            <span class="cat-tag">${dish.category}</span>
+                        </div>
+                        <div class="dish-info">
+                            <span class="name">${dish.name}</span>
+                            <span class="emoji-deco">${dish.emoji || '❤️'}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            grid.innerHTML = html;
+
+            // 绑定点击事件
+            grid.querySelectorAll('.dish-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    const id = parseInt(this.dataset.id);
+                    toggleSelect(id);
+                });
+            });
+        }
+
+        // 4.3 更新底部栏
+        function updateBottomBar() {
+            const selected = getSelectedDishes();
+            const count = selected.length;
+
+            // 徽章
+            countBadge.textContent = count;
+            countBadge.classList.toggle('empty', count === 0);
+
+            // 已选名称
+            if (count === 0) {
+                selectedNamesEl.innerHTML = `<span class="placeholder">还没有选菜呢 ~</span>`;
+            } else {
+                const names = selected.map(d => d.name).join(' · ');
+                selectedNamesEl.innerHTML = `<span>${names}</span>`;
+            }
+
+            // 更新卡片选中状态（仅当前可见的卡片）
+            document.querySelectorAll('.dish-card').forEach(card => {
+                const id = parseInt(card.dataset.id);
+                card.classList.toggle('selected', selectedIds.has(id));
+            });
+        }
+
+        // 4.4 渲染模态框清单
+        function renderModal() {
+            const selected = getSelectedDishes();
+            if (selected.length === 0) {
+                selectedList.innerHTML = `<li class="empty-msg">🍃 还没有选菜呢，去点几道吧 ~</li>`;
+                return;
+            }
+            let html = '';
+            selected.forEach((dish, idx) => {
+                html += `
+                    <li>
+                        <span class="idx">${idx + 1}</span>
+                        <span>${dish.emoji || '🍽️'} ${dish.name}</span>
+                        <span style="margin-left:auto;font-size:13px;color:#b07a8a;">${dish.category}</span>
+                    </li>
+                `;
+            });
+            selectedList.innerHTML = html;
+        }
+
+        // ================================================================
+        //  5. 交互逻辑
+        // ================================================================
+
+        // 切换选中状态
+        function toggleSelect(id) {
+            if (selectedIds.has(id)) {
+                selectedIds.delete(id);
+            } else {
+                selectedIds.add(id);
+            }
+            updateBottomBar();
+            // 只更新当前可见的卡片状态（避免重新渲染全部）
+            document.querySelectorAll('.dish-card').forEach(card => {
+                const cid = parseInt(card.dataset.id);
+                if (cid === id) {
+                    card.classList.toggle('selected', selectedIds.has(id));
+                }
+            });
+        }
+
+        // 清空所有选择
+        function clearAll() {
+            if (selectedIds.size === 0) {
+                showToast('💡 还没有选菜呢');
+                return;
+            }
+            selectedIds.clear();
+            updateBottomBar();
+            document.querySelectorAll('.dish-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            showToast('🗑️ 已清空所有选择');
+        }
+
+        // 确认点菜
+       function confirmOrder() {
+    const selected = getSelectedDishes();
+    if (selected.length === 0) {
+        showToast('💡 请先选几道菜吧');
+        return;
+    }
+
+    // 生成点单小票内容
+    const now = new Date();
+    const timeStr = now.toLocaleString('zh-CN', { hour12: false });
+    let dishList = selected.map((d, i) => `${i+1}. ${d.emoji || '🍽️'} ${d.name}`).join('\n');
+    
+    // 用 alert 弹窗模拟“下单成功”反馈（简单直接）
+    alert(
+        `✅ 点单成功！\n\n` +
+        `🕒 下单时间：${timeStr}\n` +
+        `📋 共 ${selected.length} 道菜：\n${dishList}\n\n` +
+        `👩‍🍳 厨房已收到订单，马上开始烹饪！`
+    );
+
+    // 同时弹出 toast 提示
+    showToast('✅ 已确认！共 ' + selected.length + ' 道菜 🎉');
+    
+    // 可选：清空已选状态（如果想保留已选状态，注释掉下面一行）
+    // selectedIds.clear();
+    // updateBottomBar();
+    // document.querySelectorAll('.dish-card').forEach(card => card.classList.remove('selected'));
+}
+
+        // ================================================================
+        //  6. 事件绑定
+        // ================================================================
+
+        // 底部按钮
+        clearBtn.addEventListener('click', clearAll);
+        confirmBtn.addEventListener('click', confirmOrder);
+
+        // 模态框
+        modalClose.addEventListener('click', () => {
+            modalOverlay.classList.remove('active');
+        });
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) {
+                modalOverlay.classList.remove('active');
+            }
+        });
+        modalClearBtn.addEventListener('click', () => {
+            clearAll();
+            modalOverlay.classList.remove('active');
+        });
+        modalConfirmBtn.addEventListener('click', () => {
+            const names = getSelectedNames();
+            if (names.length === 0) {
+                showToast('💡 还没有选菜呢');
+                return;
+            }
+            modalOverlay.classList.remove('active');
+            showToast('✅ 已确认！共 ' + names.length + ' 道菜 🎉');
+            // 可选：把选中的菜名打印到控制台，或做其他操作
+            console.log('📋 已点菜品：', names.join('、'));
+        });
+
+        // ================================================================
+        //  7. 初始化
+        // ================================================================
+
+        function init() {
+            renderCategories();
+            renderDishes();
+            updateBottomBar();
+        }
+
+        init();
+
+        // 如果图片加载失败，使用 emoji 占位（已在 img onerror 中处理）
+        console.log('🍽️ 畅畅的小食堂已开张！');
+        console.log('💡 提示：在 DISHES 数组中修改或添加你的菜品数据。');
+        console.log('📸 图片替换：将 image 字段改为你的图片 URL 或本地路径。');
+    </script>
+
+</body>
+</html>
